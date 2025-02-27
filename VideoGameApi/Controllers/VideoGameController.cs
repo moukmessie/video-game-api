@@ -39,62 +39,41 @@ namespace VideoGameApi.Controllers
 			return CreatedAtAction(nameof(GetVideoGameById), new { id = newGame.Id }, newGame);
 		}
 
-		
+		[HttpPut("{id}")]
+		public async Task<ActionResult> UpdateVideoGame(int id, VideoGame updateGame)
+		{
+			if (id != updateGame.Id)
+				return BadRequest();
+			_context.Entry(updateGame).State = EntityState.Modified;
+			try
+			{
+				await _context.SaveChangesAsync();
+			}
+			catch (DbUpdateConcurrencyException)
+			{
+				if (!VideoGameExists(id))
+					return NotFound();
+				else
+					throw;
+			}
+			return NoContent();
+		}
 
-		//[HttpGet]
-		//public ActionResult<IEnumerable<VideoGame>> GetVideoGames()
-		//{
-		//	return Ok(_videoGames);
-		//}
+		[HttpDelete("{id}")]
+		public async Task<ActionResult> DeleteVideoGame(int id)
+		{
+			var videoGame = await _context.VideoGames.FindAsync(id);
+			if (videoGame == null)
+				return NotFound();
+			_context.VideoGames.Remove(videoGame);
+			await _context.SaveChangesAsync();
+			return NoContent();
+		}
 
-		//[HttpGet("{id}")]
-		//public ActionResult<VideoGame> GetVideoGameById(int id)
-		//{
-		//	var videoGame = _videoGames.FirstOrDefault(v => v.Id == id);
-		//	if (videoGame == null)
-		//		return NotFound();
-
-		//	return Ok(videoGame);
-		//}
-
-		//[HttpPost]
-		//public ActionResult<VideoGame> AddVideoGame(VideoGame newGame)
-		//{
-		//	if (newGame is null)
-		//		return BadRequest();
-
-		//	newGame.Id = _videoGames.Max(g => g.Id) + 1;
-		//	_videoGames.Add(newGame);
-
-		//	return CreatedAtAction(nameof(GetVideoGameById), new { id = newGame.Id }, newGame);
-		//}
-
-		//[HttpPut("{id}")]
-		//public IActionResult UpdateVideoGame(int id, VideoGame updateGame)
-		//{
-		//	var game = _videoGames.FirstOrDefault(g => g.Id == id);
-		//	if (game is null)
-		//		return NotFound();
-
-		//	game.Title = updateGame.Title;
-		//	game.Publisher = updateGame.Publisher;
-		//	game.Developer = updateGame.Developer;
-		//	game.Platform = updateGame.Platform;
-
-		//	return NoContent();
-		//}
-
-		//[HttpDelete("{id}")]
-		//public IActionResult DeleteVideoGame (int id)
-		//{
-		//	var game = _videoGames.FirstOrDefault(g => g.Id == id);
-		//	if (game is null)
-		//		return NotFound();
-
-		//	_videoGames.Remove(game);
-		//	return NoContent();
-
-		//}
+		private bool VideoGameExists(int id)
+		{
+			return _context.VideoGames.Any(e => e.Id == id);
+		}
 
 	}
 }
