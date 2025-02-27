@@ -7,7 +7,7 @@ namespace VideoGameApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class VideoGameController(VideoGameDbContext context) : ControllerBase
+    public class VideoGamesController(VideoGameDbContext context) : ControllerBase
     {
        private readonly VideoGameDbContext _context = context ;
 
@@ -22,7 +22,7 @@ namespace VideoGameApi.Controllers
 		public async Task<ActionResult<VideoGame>> GetVideoGameById(int id)
 		{
 			var videoGame = await _context.VideoGames.FindAsync(id);
-			if (videoGame == null)
+			if (videoGame is null)
 				return NotFound();
 			return Ok(videoGame);
 		}
@@ -40,22 +40,19 @@ namespace VideoGameApi.Controllers
 		}
 
 		[HttpPut("{id}")]
-		public async Task<ActionResult> UpdateVideoGame(int id, VideoGame updateGame)
+		public async  Task <IActionResult> UpdateVideoGame(int id, VideoGame updateGame)
 		{
-			if (id != updateGame.Id)
-				return BadRequest();
-			_context.Entry(updateGame).State = EntityState.Modified;
-			try
-			{
-				await _context.SaveChangesAsync();
-			}
-			catch (DbUpdateConcurrencyException)
-			{
-				if (!VideoGameExists(id))
-					return NotFound();
-				else
-					throw;
-			}
+			var game = await _context.VideoGames.FindAsync(id);
+			if (game is null)
+				return NotFound();
+
+			game.Title = updateGame.Title;
+			game.Publisher = updateGame.Publisher;
+			game.Developer = updateGame.Developer;
+			game.Platform = updateGame.Platform;
+
+			await _context.SaveChangesAsync();
+
 			return NoContent();
 		}
 
@@ -63,17 +60,14 @@ namespace VideoGameApi.Controllers
 		public async Task<ActionResult> DeleteVideoGame(int id)
 		{
 			var videoGame = await _context.VideoGames.FindAsync(id);
-			if (videoGame == null)
+			if (videoGame is null)
 				return NotFound();
 			_context.VideoGames.Remove(videoGame);
 			await _context.SaveChangesAsync();
 			return NoContent();
 		}
 
-		private bool VideoGameExists(int id)
-		{
-			return _context.VideoGames.Any(e => e.Id == id);
-		}
+		
 
 	}
 }
